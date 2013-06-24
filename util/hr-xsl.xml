@@ -90,6 +90,7 @@ Author: Trevor Harmon
 			<tidy srcfile="@{in}" destfile="${temp.file}" failonerror="true"> 
 				<parameter name="indent" value="auto"/>  
 				<parameter name="wrap" value="0"/>   <!-- Turn off line wrapping -->
+				<parameter name="char-encoding" value="UTF-8"/>
 			</tidy> 
 			<move file="${temp.file}" tofile="@{in}"/>  
 		</sequential>
@@ -115,8 +116,10 @@ Author: Trevor Harmon
 		<attribute name="in" description="The DocBook file"/>
 		<attribute name="out" description="The output file"/>
 		<attribute name="format" description="The format of the output ('fo' or 'html')"/>
-		<sequential> 
-			<saxon in="@{in}" out="@{out}" style="${hr-xsl.basedir}/util/customization-layer.xsl">
+		<attribute name="customization-layer" default="${hr-xsl.basedir}/util/customization-layer.xsl"  />
+		<sequential>
+			<echo message="customization-layer is @{customization-layer}" />
+			<saxon in="@{in}" out="@{out}" style="@{customization-layer}">
 				<xmlcatalog> 
 					<entity publicId="stylesheet" location="${docbook.xsl.dir}/@{format}/docbook.xsl"/>
 					<!-- Use the local DocBook DTD so that translations can be performed offline -->
@@ -160,7 +163,8 @@ Author: Trevor Harmon
 					<pathelement path="${in}.html"/>
 				</targetfiles>
 				<sequential>
-					<docbook-to format="html" in="${in}-docbook.xml" out="${in}.html"/> 
+					<docbook-to format="html" in="${in}-docbook.xml" out="${in}.html"
+						customization-layer="${hr-xsl.basedir}/util/customization-layer-html.xsl"/> 
 					<tidy-html in="${in}.html"/>
 				</sequential>
 			</outofdate>
@@ -258,7 +262,7 @@ Author: Trevor Harmon
 
 					<!-- Use lynx to convert the HTML to plain text -->
 					<exec executable="${lynx.executable}" output="${in}.txt">
-						<arg line="-dump -nolist '${in}.html'"/>
+						<arg line="-dump -nolist -cfg ${hr-xsl.basedir}/util/lynx.cfg '${in}.html'"/>
 					</exec>
 
 				</sequential>
